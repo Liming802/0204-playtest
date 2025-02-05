@@ -102,13 +102,13 @@ class GameTimer {
             }
         ];
         this.backgroundUpdates = [
-            { hours: 0, image: '/images/scene0.jpg' },
-            { hours: 0.5, image: '/images/scene1.jpg' },
-            { hours: 2, image: '/images/scene2.jpg' },
-            { hours: 4, image: '/images/scene3.jpg' },
-            { hours: 6, image: '/images/scene4.jpg' },
-            { hours: 8, image: '/images/scene5.jpg' },
-            { hours: 10, image: '/images/scene6.jpg' }
+            { hours: 0, image: './images/scene0.jpg' },
+            { hours: 0.5, image: './images/scene1.jpg' },
+            { hours: 2, image: './images/scene2.jpg' },
+            { hours: 4, image: './images/scene3.jpg' },
+            { hours: 6, image: './images/scene4.jpg' },
+            { hours: 8, image: './images/scene5.jpg' },
+            { hours: 10, image: './images/scene6.jpg' }
         ];
         this.initTimer();
         this.initTimerClick();
