@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playtest</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 修改背景容器 -->
+    <div class="background-container">
+        <div class="background-image"></div>
+    </div>
+
+    <!-- 计时器 -->
+    <div class="timer-container">
+        <div id="timer">00:00:00</div>
+        <div class="mission-timer-wrapper">
+            <span class="timer-label">After the incident:</span>
+            <div id="mission-timer">00:00:00</div>
+        </div>
+    </div>
+
+    <!-- 计时器重置确认框 -->
+    <div id="timer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>重置计时器</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>确定要重置计时器吗？</p>
+                <div class="button-container">
+                    <button id="timer-yes">是</button>
+                    <button id="timer-no">否</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="button-container">
+        <button id="conclusion" class="game-button conclusion-button">Conclusion</button>
+        <button id="evidence" class="game-button">证物</button>
+        <button id="map" class="game-button">地图</button>
+        <button id="events" class="game-button">事件</button>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="evidence.js"></script>
+    <script src="conclusion.js"></script>
+</body>
+</html>
