@@ -237,44 +237,39 @@ class QuestioningModal {
 
     async askForWords(p_prompt) {
         const system_prompt = this.getSystemPrompt(this.currentUser);
-        const apiKey = "sk-cdba29d487ad43f483fbad11c3f07cef";
 
         this.addMessageToChat("Silent", false, true);
 
         const data = {
-            // model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: system_prompt },
-                { role: "user", content: `Detective: ${p_prompt}\n${this.currentUser}: ` },
-            ],
-            max_tokens: 100,
+            "version": "35042c9a33ac8fd5e29e27fb3197f33aa483f72c2ce3b0b9d201155c7fd2a287", 
+            input: {
+                prompt: `${system_prompt}\n\nDetective: ${p_prompt}\n${this.currentUser}: `,
+                max_tokens: 100,
+            },
         };
 
-        const options = {
+        let options = {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
+                "Accept": "application/json",
             },
             body: JSON.stringify(data),
         };
 
-        const url = "https://api.deepseek.com/completions";
+        // Use CORS Anywhere proxy
+        const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+        const targetUrl = "https://replicate-api-proxy.glitch.me/create_n_get/";
+        const url = proxyUrl + targetUrl;
 
         try {
             const words_response = await fetch(url, options);
-            const responseText = await words_response.text(); // Get the response as text
-
-            // Log the response text for debugging
-            console.log("API Response Text:", responseText);
-
-            // Attempt to parse the response as JSON
-            const responseData = JSON.parse(responseText);
-
-            if (!responseData.choices || responseData.choices.length === 0) {
+            const proxy_said = await words_response.json();
+            
+            if (!proxy_said.output || proxy_said.output.length === 0) {
                 console.error("API 响应为空，请重试。");
             } else {
-                let incomingText = responseData.choices[0].message.content;
+                let incomingText = proxy_said.output.join("");
                 this.addMessageToChat(incomingText, false);
             }
         } catch (error) {
@@ -286,7 +281,6 @@ class QuestioningModal {
             }
         }
     }
-    
 
     show() {
         this.modal.style.display = 'block';

@@ -26,7 +26,7 @@ body {
     color: var(--primary-text);
     font-family: 'Patrick Hand', cursive;
     overflow: hidden;
-    font-size: calc(var(--font-size-base) + 4px); /* 应该计算为 20px */
+    font-size: calc(var(--font-size-base) + 2px); /* 应该计算为 20px */
 }
 
 /* 游戏容器 */
@@ -72,7 +72,7 @@ body {
 }
 
 #timer, #mission {
-    font-size: calc(var(--font-size-base) + 4px);
+    font-size: calc(var(--font-size-base) + 2px);
     font-family: 'Digital-7', 'DS-Digital', 'Segment7', 'Courier New', monospace;
     font-weight: bold;
     color: var(--timer-color);
@@ -922,7 +922,7 @@ button:hover {
     margin-right: 10px; /* 输入框与发送按钮之间的间距 */
     background: var(--primary-bg);
     color: var(--primary-text);
-    font-size: calc(var(--font-size-base) + 8px); /* 增加字体大小 */
+    font-size: calc(var(--font-size-base) + 4px); /* 增加字体大小 */
 }
 
 .avatar {
