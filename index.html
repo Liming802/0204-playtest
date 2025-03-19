@@ -5,19 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playtest</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="event.js" defer></script>
+    <script src="detective.js" defer></script>
+    <script src="script.js" defer></script>
+    <script src="evidence.js" defer></script>
+    <script src="conclusion.js" defer></script>
+    <script src="questioning.js" defer></script>
 </head>
 <body>
-    <!-- 修改背景容器 -->
+    <div class="pause-overlay">
+        <div class="pause-icon">⏸</div>
+    </div>
     <div class="background-container">
         <div class="background-image"></div>
     </div>
 
+    <!-- 侦探头像和名称 -->
+    <div class="detective-container">
+        <img id="detective-avatar" src="./images/me.png" alt="Detective" class="detective-avatar" />
+        <button class="detective-switch" id="main-detective-switch">
+            <span class="current-detective">Poirot</span>
+            <span class="switch-icon">⇄</span>
+            <span class="next-detective">Marple</span>
+        </button>
+    </div>
+
+    <!-- 侦探卡片 -->
+    <div id="detective-card" class="detective-card" style="display: none;">
+        <!-- 卡片头部 -->
+        <div class="detective-card-header">
+            <div class="detective-header-content">
+                <h2 class="detective-name">Hercule Poirot</h2>
+                <div class="detective-title">Private Detective</div>
+            </div>
+            <button class="close-detail">&times;</button>
+        </div>
+
+        <!-- 卡片主体 -->
+        <div class="detective-card-body">
+            <!-- 头像和基本信息容器 -->
+            <div class="detective-profile-container">
+                <div class="detective-avatar-container">
+                    <img src="./images/detective.png" alt="Detective" class="detective-card-avatar" id="detective-profile-img" />
+                    <button class="detective-switch" id="detective-switch">
+                        <span class="current-detective">Poirot</span>
+                        <span class="switch-icon">⇄</span>
+                        <span class="next-detective">Marple</span>
+                    </button>
+                </div>
+                <div class="detective-info-container">
+                    <div class="info-section">
+                        <h3 id="detective-background-title">Background</h3>
+                        <p id="detective-background-text">A former Belgian police officer turned private detective, is known for his sharp intellect, psychological insight, and obsession with order.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 技能容器 -->
+            <div class="detective-skills-container">
+                <div class="skill-section">
+                    <h3 id="detective-skill-title">Special Ability: Grey Cells</h3>
+                    <p id="detective-skill-text">In each game, key evidence marked with grey cells will be randomly triggered.</p>
+                </div>
+                
+                <!-- 技能点数容器 -->
+                <div class="skill-points-container">
+                    <h3>Attributes</h3>
+                    <div class="skill-points">
+                        <div class="skill-point">
+                            <span class="skill-label">Lab Points:</span>
+                            <span id="lab-point" class="skill-value">10</span>
+                        </div>
+                        <div class="skill-point">
+                            <span class="skill-label">Tech Points:</span>
+                            <span id="tech-point" class="skill-value">6</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 计时器 -->
-    <div class="timer-container">
-        <div id="timer">00:00:00</div>
-        <div class="mission-timer-wrapper">
-            <span class="timer-label">After the incident:</span>
-            <div id="mission-timer">00:00:00</div>
+    <div class="timer-container" id="reset">
+        <div class="timer-display">
+            <div id="timer">00:00:00</div>
+            <div id="mission" class="mission-timer-wrapper">
+                <span class="timer-label">POST-INCIDENT</span>
+                <div id="mission-timer">00:00:00</div>
+            </div>
+        </div>
+        <div class="timer-controls">
+            <button id="pause-button" class="timer-button">
+                <span class="timer-button-icon">⏸</span>
+            </button>
+            <button id="reset-button" class="timer-button">
+                <span class="timer-button-icon">↺</span>
+            </button>
         </div>
     </div>
 
@@ -25,14 +109,14 @@
     <div id="timer-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>重置计时器</h2>
+                <h2>Reset Timer</h2>
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body">
-                <p>确定要重置计时器吗？</p>
-                <div class="button-container">
-                    <button id="timer-yes">是</button>
-                    <button id="timer-no">否</button>
+                <p>Are you sure you want to reset the Game?<br>Your inquiry records and evidence will disappear.</p>
+                <div class="button2-container">
+                    <button id="timer-yes" style="background-color: #2e2e2e3a; color: white;">Yes</button>
+                    <button id="timer-no" style="background-color: #491915; color: white;">No</button>
                 </div>
             </div>
         </div>
@@ -46,20 +130,47 @@
                 <span class="close">&times;</span>
             </div>
             <div class="modal-body" id="modal-body">
+                <!-- Content will be injected here -->
             </div>
         </div>
     </div>
 
     <!-- 底部按钮 -->
     <div class="button-container">
-        <button id="conclusion" class="game-button conclusion-button">Conclusion</button>
-        <button id="evidence" class="game-button">证物</button>
-        <button id="map" class="game-button">地图</button>
-        <button id="events" class="game-button">事件</button>
+        <button id="evidence" class="game-button">Evidence</button>
+        <button id="questioning" class="game-button">Questioning</button>
+        <button id="events" class="game-button">Events</button>
+        <button id="conclusion" class="game-button conclusion-button" style="background: #FF8C00;">Conclusion</button>
     </div>
 
-    <script src="script.js"></script>
-    <script src="evidence.js"></script>
-    <script src="conclusion.js"></script>
+    <!-- 点数显示容器 -->
+    <div class="points-display">
+        <div class="points-container">
+            <div class="points-icon">
+                <img src="./images/Lab.png" alt="Lab" style="width: 60px; height: 60px; margin: 10px;">
+            </div>
+            <div class="points-info">
+                <div class="points-label">Lab Points</div>
+                <div class="points-value" id="main-lab-points">5</div>
+            </div>
+        </div>
+        <div class="points-container">
+            <div class="points-icon">
+                <img src="./images/Tech.png" alt="Tech" style="width: 60px; height: 60px; margin: 10px;">
+            </div>
+            <div class="points-info">
+                <div class="points-label">Tech Points</div>
+                <div class="points-value" id="main-tech-points">3</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scene-buttons">
+        <button id="scene1-btn">Living Room</button>
+        <button id="scene2-btn">Mark's Room</button>
+        <button id="scene3-btn">John's Room</button>
+        <button id="scene4-btn">Amy's Room</button>
+        <button id="scene5-btn">Linna's Room</button>
+    </div>
 </body>
 </html>

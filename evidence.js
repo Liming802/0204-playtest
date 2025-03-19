@@ -1,73 +1,6 @@
-const evidenceData = {
-    en: [
-        {
-            id: 1,
-            name: "Evidence 1",
-            image: "path/to/image1.jpg",
-            description: "This is the detailed description of Evidence 1"
-        },
-        {
-            id: 2,
-            name: "Evidence 2",
-            image: "path/to/image2.jpg",
-            description: "This is the detailed description of Evidence 2"
-        },
-        {
-            id: 3,
-            name: "Evidence 3",
-            image: "path/to/image3.jpg",
-            description: "This is the detailed description of Evidence 3"
-        },
-        {
-            id: 4,
-            name: "Evidence 4",
-            image: "path/to/image4.jpg",
-            description: "This is the detailed description of Evidence 4"
-        },
-        {
-            id: 5,
-            name: "Evidence 5",
-            image: "path/to/image5.jpg",
-            description: "This is the detailed description of Evidence 5"
-        }
-    ],
-    zh: [
-        {
-            id: 1,
-            name: "物证1",
-            image: "path/to/image1.jpg",
-            description: "这是物证1的详细描述"
-        },
-        {
-            id: 2,
-            name: "物证2",
-            image: "path/to/image2.jpg",
-            description: "这是物证2的详细描述"
-        },
-        {
-            id: 3,
-            name: "物证3",
-            image: "path/to/image3.jpg",
-            description: "这是物证3的详细描述"
-        },
-        {
-            id: 4,
-            name: "物证4",
-            image: "path/to/image4.jpg",
-            description: "这是物证4的详细描述"
-        },
-        {
-            id: 5,
-            name: "物证5",
-            image: "path/to/image5.jpg",
-            description: "这是物证5的详细描述"
-        }
-    ]
-};
-
 class EvidencePage {
     constructor() {
-        this.currentLang = 'en';
+        this.currentLang = 'en'; 
         this.createEvidenceModal();
         this.modal = document.getElementById('evidence-management-modal');
         this.setupEvidenceItems();
@@ -80,7 +13,7 @@ class EvidencePage {
         modal.className = 'modal';
         
         // 使用当前语言的翻译
-        const t = translations[this.currentLang];
+        const t = translations.en; // 只使用英语
         
         modal.innerHTML = `
             <div class="modal-content">
@@ -93,7 +26,7 @@ class EvidencePage {
                         <div class="evidence-list">
                             <!-- Evidence items will be added here -->
                         </div>
-                        <div class="evidence-categories">
+                        <div class="evidence-categories" style="max-height: 600px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.5) transparent;">
                             <div class="category" id="conviction">
                                 <h3>${t.conviction}</h3>
                                 <div class="category-content" data-category="conviction"></div>
@@ -122,7 +55,7 @@ class EvidencePage {
     setupEvidenceItems() {
         const evidenceList = document.querySelector('.evidence-list');
         evidenceList.innerHTML = ''; // 清空现有内容
-        evidenceData[this.currentLang].forEach(item => {
+        evidenceData.en.forEach(item => {
             const itemElement = this.createEvidenceItem(item);
             evidenceList.appendChild(itemElement);
         });
@@ -134,8 +67,10 @@ class EvidencePage {
         div.draggable = true;
         div.dataset.id = item.id;
         div.innerHTML = `
-            <span class="evidence-name">${item.name}</span>
-            <button class="info-btn">!</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span class="evidence-name">${item.name}</span>
+                <button class="info-btn" style="width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center; margin-left: 8px;">!</button>
+            </div>
         `;
         return div;
     }
@@ -199,7 +134,7 @@ class EvidencePage {
         }
 
         // 创建新的物证元素
-        const evidence = evidenceData[this.currentLang].find(e => e.id === parseInt(evidenceId));
+        const evidence = evidenceData.en.find(e => e.id === parseInt(evidenceId));
         if (!evidence) return;
 
         const evidenceItem = document.createElement('div');
@@ -207,8 +142,10 @@ class EvidencePage {
         evidenceItem.draggable = true;
         evidenceItem.dataset.id = evidence.id;
         evidenceItem.innerHTML = `
-            <span class="evidence-name">${evidence.name}</span>
-            <button class="info-btn">!</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span class="evidence-name">${evidence.name}</span>
+                <button class="info-btn" style="width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center; margin-left: 8px;">!</button>
+            </div>
         `;
 
         // 从所有分类区域中移除该物证
@@ -242,7 +179,7 @@ class EvidencePage {
         e.stopPropagation();
         
         const evidenceId = e.target.closest('.evidence-item').dataset.id;
-        const evidence = evidenceData[this.currentLang].find(item => item.id === parseInt(evidenceId));
+        const evidence = evidenceData.en.find(item => item.id === parseInt(evidenceId));
         
         let detailPanel = document.querySelector('.evidence-detail-panel');
         if (!detailPanel) {
@@ -254,7 +191,7 @@ class EvidencePage {
         detailPanel.innerHTML = `
             <div class="detail-header">
                 <h3>${evidence.name}</h3>
-                <button class="close-detail">×</button>
+                <button class="evidence-close-detail">×</button>
             </div>
             <div class="detail-content">
                 <img src="${evidence.image}" alt="${evidence.name}">
@@ -265,40 +202,46 @@ class EvidencePage {
         detailPanel.style.display = 'block';
 
         // 绑定详情面板的关闭按钮
-        const closeDetailBtn = detailPanel.querySelector('.close-detail');
+        const closeDetailBtn = detailPanel.querySelector('.evidence-close-detail');
         if (closeDetailBtn) {
             closeDetailBtn.addEventListener('click', () => {
                 detailPanel.style.display = 'none';
             });
         }
     }
-
-    // 添加语言更新方法
-    updateLanguage(lang) {
-        this.currentLang = lang;
-        const t = translations[this.currentLang];
-        
-        // 更新分类标题
-        const modal = document.getElementById('evidence-management-modal');
-        modal.querySelector('.modal-header h2').textContent = t.evidenceManagement;
-        modal.querySelector('#conviction h3').textContent = t.conviction;
-        modal.querySelector('#important h3').textContent = t.important;
-        modal.querySelector('#related h3').textContent = t.related;
-        modal.querySelector('#other h3').textContent = t.other;
-
-        // 更新物证列表
-        this.setupEvidenceItems();
-        
-        // 更新已分类的物证
-        document.querySelectorAll('.category-content').forEach(category => {
-            const items = category.querySelectorAll('.evidence-item');
-            items.forEach(item => {
-                const id = parseInt(item.dataset.id);
-                const evidence = evidenceData[this.currentLang].find(e => e.id === id);
-                if (evidence) {
-                    item.querySelector('.evidence-name').textContent = evidence.name;
-                }
-            });
-        });
-    }
 } 
+const evidenceData = {
+    en: [
+        {
+            id: 1,
+            name: "Evidence 1",
+            image: "path/to/image1.jpg",
+            description: "This is the detailed description of Evidence 1"
+        },
+        {
+            id: 2,
+            name: "Evidence 2",
+            image: "path/to/image2.jpg",
+            description: "This is the detailed description of Evidence 2"
+        },
+        {
+            id: 3,
+            name: "Evidence 3",
+            image: "path/to/image3.jpg",
+            description: "This is the detailed description of Evidence 3"
+        },
+        {
+            id: 4,
+            name: "Evidence 4",
+            image: "path/to/image4.jpg",
+            description: "This is the detailed description of Evidence 4"
+        },
+        {
+            id: 5,
+            name: "Evidence 5",
+            image: "path/to/image5.jpg",
+            description: "This is the detailed description of Evidence 5"
+        }
+    ]
+};
+
