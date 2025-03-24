@@ -53,7 +53,7 @@ class QuestioningModal {
                                 <li data-user="John" class="character-item"><img src="./images/Johnh.png" alt="John" class="avatar">John</li>
                                 <li data-user="Linna" class="character-item"><img src="./images/Linnah.png" alt="Linna" class="avatar">Linna</li>
                                 <li data-user="Amy" class="character-item"><img src="./images/Amyh.png" alt="Amy" class="avatar">Amy</li>
-                                <li data-user="Tom" class="character-item"><img src="./images/Tomh.png" alt="Tom" class="avatar">Tom</li>
+                                <li data-user="Tom" class="character-item"><img src="./images/tomh.png" alt="Tom" class="avatar">Tom</li>
                                 <li data-user="Neel" class="character-item"><img src="./images/Neelh.png" alt="Neel" class="avatar">Neel</li>
                             </ul>
                         </div>
@@ -173,7 +173,7 @@ class QuestioningModal {
 
         this.currentUser = user;
         const userImage = document.getElementById('user-image');
-        userImage.src = `./images/${user.toLowerCase()}h.png`; // 更新路径为相对路径，使用名字加h的图片
+        userImage.src = `./images/${user}h.png`; // 更新路径为相对路径，使用名字加h的图片
         userImage.style.display = 'block'; // 显示用户图片
 
         // 为当前选中的用户添加选中状态

@@ -5,7 +5,7 @@ class DetectiveManager {
                 name: "Hercule Poirot",
                 title: "Private Detective",
                 image: "./images/detective.png",
-                avatarImage: "./images/me.png",
+                avatarImage: "./images/Me.png",
                 background: "A former Belgian police officer turned private detective, is known for his sharp intellect, psychological insight, and obsession with order,  believing that 'the little grey cells' hold the key to solving any mystery.",
                 skillTitle: "Special Ability: Grey Cells",
                 skillText: "In each game, key evidence marked with grey cells will be randomly triggered.",
