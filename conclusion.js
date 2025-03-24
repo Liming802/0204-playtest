@@ -85,56 +85,74 @@ class ConclusionManager {
 
     async checkConclusion(suspect, reasoning) {
         try {
-            // 构建系统提示，类似于 questioning.js 中的 getSystemPrompt
+            // 构建系统提示
             const systemPrompt = `You are the Truth Verification System for the detective game. 
             As an AI judge, your role is to evaluate the detective's conclusion about the culprit.
             Respond as if you are the verification system, analyzing the detective's conclusion.
-            Be factual but cryptic - don't reveal the full truth, only hint if they're on the right track.
+            reveal the full truth and correct user's thought.
             Give feedback on their reasoning and evidence interpretation.
             
             The truth is: Linna killed Mark by hitting him with a bat after drugging him. Her motive was revenge for exploitation and to steal drugs and money. Amy drugged Mark's coffee to retrieve blackmail documents. John tampered with the crime scene to hide evidence of his forged contracts. Tom discovered the body but was afraid to report it directly.`;
 
-            // 构建用户提示文本
             const userPrompt = `The detective has concluded that ${suspect} is the culprit, with the following reasoning:
             ${reasoning}
             
             Provide an evaluation of this conclusion. Indicate if they're on the right track and provide hints about their reasoning without directly confirming the murderer.`;
 
-            // 使用 DeepSeek API
-            const apiKey = "sk-cdba29d487ad43f483fbad11c3f07cef"; // 与 questioning.js 使用相同的 API 密钥
-            
+
             const data = {
-                model: "gpt-3.5-turbo",  // 可以选择 gpt-3.5-turbo 或 gpt-4
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt },
-                ],
-                max_tokens: 300,  // 生成的最大字数，结论分析需要更多字数
+                "model": "meta/meta-llama-3-8b-instruct",
+                input: {
+                    prompt: `${systemPrompt}\n\nUser: ${userPrompt}\nVerification System:`,
+                    temperature: 0.5,
+                    top_p: 1,
+                    max_new_tokens: 300, // 增加token数以获取详细分析
+                },
             };
-            
+        
             const options = {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`, // 使用 Bearer token
+                    "Accept": "application/json",
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(data)
             };
+        
+            // 使用与 questioning.js 相同的 Cloudflare Worker URL
+            const url = "https://restless-breeze-024b.liming970603.workers.dev/";
             
-            const url = "https://api.deepseek.com/completions"; // DeepSeek API URL
-
+            console.log("发送结论验证请求到 API...");
             const words_response = await fetch(url, options);
-            const responseData = await words_response.json();
             
-            if (!responseData.choices || responseData.choices.length === 0) {
-                console.error("API 响应为空，请重试。");
-                this.displayVerificationResult("System error: Could not verify your conclusion. Please try again later.");
-            } else {
-                let incomingText = responseData.choices[0].message.content;
-                this.displayVerificationResult(incomingText);
+            if (!words_response.ok) {
+                console.error(`API 响应错误: ${words_response.status} ${words_response.statusText}`);
+                throw new Error(`API response error: ${words_response.status}`);
+            }
+            
+            // 解析响应
+            const responseText = await words_response.text();
+            console.log("API 原始响应:", responseText);
+            
+            try {
+                const proxy_said = JSON.parse(responseText);
+                
+                // 处理 Replicate API 响应格式
+                if (!proxy_said.output || proxy_said.output.length === 0) {
+                    console.error("API 响应为空，请重试。", proxy_said);
+                    this.displayVerificationResult("System error: Could not verify your conclusion. Please try again later.");
+                } else {
+                    // 连接输出数组中的所有文本
+                    let incomingText = proxy_said.output.join("");
+                    this.displayVerificationResult(incomingText);
+                }
+            } catch (parseError) {
+                console.error("解析 API 响应失败:", parseError);
+                console.log("原始响应内容:", responseText);
+                this.displayVerificationResult("System error: Could not parse verification results. Please try again later.");
             }
         } catch (error) {
-            console.error("API 请求失败", error);
+            console.error("验证请求失败", error);
             this.displayVerificationResult("System error: Could not connect to verification system. Please try again later.");
         } finally {
             // 确保无论成功或失败，都移除加载指示器

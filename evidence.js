@@ -26,7 +26,7 @@ class EvidencePage {
                         <div class="evidence-list">
                             <!-- Evidence items will be added here -->
                         </div>
-                        <div class="evidence-categories" style="max-height: 600px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.5) transparent;">
+                        <div class="evidence-categories" style="max-height: 40vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.5) transparent;">
                             <div class="category" id="conviction">
                                 <h3>${t.conviction}</h3>
                                 <div class="category-content" data-category="conviction"></div>
@@ -135,7 +135,11 @@ class EvidencePage {
 
         // 创建新的物证元素
         const evidence = evidenceData.en.find(e => e.id === parseInt(evidenceId));
-        if (!evidence) return;
+        if (!evidence) {
+            console.error('Evidence not found.');
+            alert('Error: Evidence not found.');
+            return;
+        }
 
         const evidenceItem = document.createElement('div');
         evidenceItem.className = 'evidence-item';
@@ -170,6 +174,7 @@ class EvidencePage {
         evidenceItem.addEventListener('click', (e) => {
             if (!e.target.classList.contains('info-btn')) {
                 evidenceItem.remove();
+                console.log('Evidence item removed.');
             }
         });
     }
