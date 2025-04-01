@@ -21,10 +21,52 @@ class GameTimer {
         this.timerElement = document.getElementById('timer');
         this.anotherElement = document.getElementById('mission');
         this.missionTimerElement = document.getElementById('mission-timer');
-        this.isRunning = true;
+        this.isRunning = false;
         this.timerInterval = null;
         this.speedMultiplier = 60;
         this.isFirstLayer = false;
+        this.hasCompletedStickers = false;
+        this.initialized = false; // 添加标志，表示是否已初始化定时器
+        
+        // 添加对话点数显示
+        this.conversationPointsElement = document.createElement('div');
+        this.conversationPointsElement.className = 'points-container conversation-points';
+        this.conversationPointsElement.innerHTML = `
+            <div class="points-icon"><img src="./images/Chat.png" alt="Chat" style="width: 60px; height: 60px;"></div>
+            <div class="points-info">
+                <div class="points-label">Chat Points</div>
+                <div class="points-value" id="conversation-points">5</div>
+            </div>
+        `;
+        // 将对话点数添加到点数容器的最底部
+        const pointsContainer = document.querySelector('.points-display');
+        pointsContainer.appendChild(this.conversationPointsElement);
+        
+        // 场景索引常量
+        this.SCENE_INTRO = 0;       // scene0.png - 介绍场景
+        this.SCENE_TRANSITION = 1;  // scene0.5.png - 过渡场景
+        this.SCENE_LIVING_ROOM = 2; // scene1.png - 客厅
+        this.SCENE_MARK_ROOM = 3;   // scene2.png - Mark的房间
+        this.SCENE_JOHN_ROOM = 4;   // scene3.png - John的房间
+        this.SCENE_AMY_ROOM = 5;    // scene4.png - Amy的房间
+        this.SCENE_LINNA_ROOM = 6;  // scene5.png - Linna的房间
+        
+        // 添加当前场景追踪
+        this.currentScene = this.SCENE_INTRO; // 初始场景
+        
+        // 检查URL参数，判断是否已完成stickers
+        if (window.location.hash === '#completed') {
+            this.hasCompletedStickers = true;
+            // 移除URL中的hash
+            window.history.replaceState(null, null, window.location.pathname);
+            this.isRunning = true; // 如果已完成，自动开始计时
+            
+            // 设置计时器为活跃状态（绿色）
+            this.setTimerActive(true);
+        } else {
+            // 未完成stickers，计时器为灰色
+            this.setTimerActive(false);
+        }
         
         // 获取暂停和重置按钮
         this.pauseButton = document.getElementById('pause-button');
@@ -48,6 +90,7 @@ class GameTimer {
 
         this.backgroundUpdates = [
             { hours: 0, image: './images/scene0.png' },
+            { hours: 0.25, image: './images/scene0.5.png' },
             { hours: 0.5, image: './images/scene1.png' },
             { hours: 2, image: './images/scene2.png' },
             { hours: 4, image: './images/scene3.png' },
@@ -55,7 +98,6 @@ class GameTimer {
             { hours: 8, image: './images/scene5.png' },
         ];
         this.initBackgroundImage();
-        this.initTimer();
         this.initTimerControls();
         this.initSceneButtons();
         this.preloadImages(); // 预加载场景图片
@@ -75,6 +117,7 @@ class GameTimer {
         });
 
         window.addEventListener('click', (event) => {
+            // 处理侦探卡片点击事件
             if (event.target === detectiveCard) {
                 detectiveCard.style.display = 'none';
             }
@@ -84,16 +127,32 @@ class GameTimer {
                 const bgElement = document.querySelector('.background-container');
                 bgElement.style.zIndex = '-999';
        
-                if (!this.isRunning) {
+                if (!this.isRunning && this.hasCompletedStickers) {
                     this.isRunning = true;
                     this.missionStartTime = new Date().getTime();
                 }
             }
             
-            // 确保点击任何地方都能关闭遮罩层并恢复计时器
-            // 但只在点击的不是遮罩层本身且遮罩层可见时执行
-            if (!this.isRunning && this.pauseOverlay.style.display === 'block' && !this.pauseOverlay.contains(event.target) && !this.pauseButton.contains(event.target)) {
-                this.togglePause();
+            // 处理暂停恢复 - 如果当前暂停且遮罩层显示，点击非暂停按钮和非遮罩层区域恢复计时
+            if (!this.isRunning && 
+                this.pauseOverlay && 
+                this.pauseOverlay.style.display === 'block' && 
+                !this.pauseOverlay.contains(event.target) && 
+                !this.pauseButton.contains(event.target)) {
+                
+                console.log("点击窗口非按钮区域，恢复游戏");
+                
+                // 直接修改状态恢复游戏
+                this.isRunning = true;
+                this.pauseOverlay.style.display = 'none';
+                
+                // 调整开始时间保持计时连续
+                if (this.pauseTime) {
+                    const currentTime = new Date().getTime();
+                    const pausedDuration = currentTime - this.pauseTime; // 暂停持续时间（毫秒）
+                    this.missionStartTime += pausedDuration; // 调整开始时间，保持已经过去的时间不变
+                    console.log("窗口点击：游戏恢复，调整了开始时间，暂停持续:", pausedDuration, "ms");
+                }
             }
         });
 
@@ -111,13 +170,28 @@ class GameTimer {
     }
 
     preloadImages() {
-        this.backgroundUpdates.forEach(update => {
+        // 确保预加载所有场景图片
+        console.log("预加载场景图片...");
+        this.backgroundUpdates.forEach((update, index) => {
             const img = new Image();
-            img.src = update.image; // 预加载图片
+            img.src = update.image;
+            console.log(`预加载场景 ${index}: ${update.image}`);
         });
     }
 
     initTimer() {
+        // 防止重复初始化
+        if (this.initialized) return;
+        this.initialized = true;
+        
+        console.log("初始化计时器...");
+        this.missionStartTime = new Date().getTime(); // 重置开始时间
+        
+        // 如果已完成贴纸，设置计时器为活跃状态
+        if (this.hasCompletedStickers) {
+            this.setTimerActive(true);
+        }
+        
         this.timerInterval = setInterval(() => {
             if (this.isRunning) {
                 const currentTime = new Date().getTime();
@@ -132,6 +206,9 @@ class GameTimer {
                 this.eventManager.checkEvents(missionElapsedTime);
             }
         }, 1000);
+        
+        // 返回true表示计时器已成功初始化
+        return true;
     }
     
 
@@ -165,14 +242,74 @@ class GameTimer {
     }
 
     resetTimer() {
-        // 重新加载整个页面
-        window.location.reload();
+        // 重置游戏状态到贴纸被清除后的初始状态，保持stickers已完成
+        console.log("重置计时器到初始状态");
+        
+        // 保持贴纸状态，重置时间为初始值
+        const now = new Date();
+        this.startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0, 0).getTime();
+        this.missionStartTime = new Date().getTime();
+        this.isRunning = true; // 重置后继续运行
+        this.initialized = false; // 允许重新初始化计时器
+        
+        // 清除现有定时器
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        
+        // 重新初始化计时器
+        this.initTimer();
+        
+        // 更新UI显示
+        this.updateMainTimer(new Date(this.startTime));
+        this.updateMissionTimer(new Date(0));
+        
+        // 重置事件状态
+        if (this.eventManager && this.eventManager.events) {
+            this.eventManager.events.forEach(event => event.triggered = false);
+        }
+        
+        // 清空聊天记录
+        this.clearChatHistory();
+        
+        // 重置背景到初始状态但保持非首屏
+        const bgElement = document.querySelector('.background-container');
+        if (bgElement) {
+            bgElement.style.zIndex = '-999'; // 确保背景在下层
+        }
+        
+        console.log("计时器已重置，保持stickers完成状态");
     }
 
     initTimerControls() {
         // 暂停按钮事件
         this.pauseButton.addEventListener('click', () => {
-            this.togglePause();
+            console.log("点击了暂停按钮，当前状态:", this.isRunning);
+            
+            // 从运行切换到暂停
+            if (this.isRunning) {
+                this.isRunning = false;
+                this.pauseOverlay.style.display = 'block'; // 显示遮罩层
+                this.pauseTime = new Date().getTime(); // 记录暂停时间
+                this.pauseOverlay.style.zIndex = '10000'; // 确保遮罩层在最上层
+                console.log("按钮点击：游戏暂停，记录暂停时间:", this.pauseTime);
+            }
+            // 从暂停切换到运行
+            else {
+                this.isRunning = true;
+                this.pauseOverlay.style.display = 'none'; // 隐藏遮罩层
+                
+                // 调整开始时间保持计时连续
+                if (this.pauseTime) {
+                    const currentTime = new Date().getTime();
+                    const pausedDuration = currentTime - this.pauseTime; // 暂停持续时间（毫秒）
+                    this.missionStartTime += pausedDuration; // 调整开始时间，保持已经过去的时间不变
+                    console.log("按钮点击：游戏恢复，调整了开始时间，暂停持续:", pausedDuration, "ms");
+                }
+            }
+            
+            console.log("按钮点击后游戏状态:", this.isRunning);
         });
         
         // 重置按钮事件
@@ -186,83 +323,95 @@ class GameTimer {
             document.getElementById('timer-modal').style.display = 'block';
         });
 
-        // 添加遮罩层点击事件 - 点击遮罩层总是继续计时
+        // 添加遮罩层点击事件 - 点击遮罩层恢复计时
         this.pauseOverlay.addEventListener('click', (event) => {
             // 阻止事件冒泡，防止触发window的点击事件
             event.stopPropagation();
             
-            // 切换状态 - 从暂停到运行
-            if (!this.isRunning) {
-                this.togglePause();
+            console.log("点击了暂停遮罩层，当前运行状态:", this.isRunning);
+            
+            // 手动设置为运行状态并隐藏遮罩层
+            this.isRunning = true;
+            this.pauseOverlay.style.display = 'none';
+            
+            if (this.pauseTime) {
+                const currentTime = new Date().getTime();
+                const pausedDuration = currentTime - this.pauseTime; // 暂停持续时间（毫秒）
+                this.missionStartTime += pausedDuration; // 调整开始时间，保持已经过去的时间不变
+                console.log("遮罩层点击：游戏恢复，调整了开始时间，暂停持续:", pausedDuration, "ms");
             }
             
-            // 直接确保遮罩层隐藏
-            this.pauseOverlay.style.display = 'none';
+            console.log("遮罩层点击后，游戏状态:", this.isRunning);
         });
     }
     
-    togglePause() {
-        this.isRunning = !this.isRunning;
-        
-        // 更新暂停按钮状态和遮罩层
-        if (this.isRunning) {
-            // 恢复计时器运行
-            this.pauseOverlay.style.display = 'none'; // 确保遮罩层被隐藏
-            
-            // 重新设置开始时间，保持已经过去的时间不变
-            const currentTime = new Date().getTime();
-            const elapsedTime = (this.pauseTime - this.missionStartTime) * this.speedMultiplier;
-            this.missionStartTime = currentTime - (elapsedTime / this.speedMultiplier);
-        } else {
-            // 暂停计时器
-            this.pauseOverlay.style.display = 'block'; // 显示遮罩层
-            
-            // 记录暂停时的时间
-            this.pauseTime = new Date().getTime();
-        }
-        
-        // 确保遮罩层在任何场景都能正常显示
-        if (!this.isRunning) {
-            // 确保遮罩层的 z-index 足够高，在所有场景都能显示
-            this.pauseOverlay.style.zIndex = '10000';
-        }
+    initSceneButtons() {
+        // 获取所有场景按钮
+        const sceneButtons = [
+            document.getElementById('scene1-btn'),
+            document.getElementById('scene2-btn'),
+            document.getElementById('scene3-btn'),
+            document.getElementById('scene4-btn'),
+            document.getElementById('scene5-btn')
+        ];
+
+        // 为每个按钮添加点击事件
+        sceneButtons.forEach((button, index) => {
+            if (button) {
+                button.addEventListener('click', () => {
+                    // 根据按钮索引切换到对应场景
+                    const sceneIndex = index + 2; // +2 因为前两个场景是intro和transition
+                    this.switchToScene(sceneIndex);
+                });
+            }
+        });
     }
 
-    initSceneButtons() {
-        document.getElementById('scene1-btn').addEventListener('click', () => {
-            this.updateBackgroundImages(1); // 切换到场景1
-        });
-        document.getElementById('scene2-btn').addEventListener('click', () => {
-            this.updateBackgroundImages(2); // 切换到场景2
-        });
-        document.getElementById('scene3-btn').addEventListener('click', () => {
-            this.updateBackgroundImages(3); // 切换到场景3
-        });
-        document.getElementById('scene4-btn').addEventListener('click', () => {
-            this.updateBackgroundImages(4); // 切换到场景4
-        });
-        document.getElementById('scene5-btn').addEventListener('click', () => {
-            this.updateBackgroundImages(5); // 切换到场景5
+    // 更新按钮状态的方法
+    updateSceneButtons(activeScene) {
+        const sceneButtons = [
+            document.getElementById('scene1-btn'),
+            document.getElementById('scene2-btn'),
+            document.getElementById('scene3-btn'),
+            document.getElementById('scene4-btn'),
+            document.getElementById('scene5-btn')
+        ];
+
+        sceneButtons.forEach((button, index) => {
+            if (button) {
+                const sceneIndex = index + 2; // +2 因为前两个场景是intro和transition
+                if (sceneIndex === activeScene) {
+                    button.classList.add('active-scene');
+                } else {
+                    button.classList.remove('active-scene');
+                }
+            }
         });
     }
+
     initBackgroundImage() {
         // Set the initial background image to scene0.png
         this.updateBackgroundImages(0); // Assuming 0 corresponds to scene0
     }
     updateBackgroundImages(sceneNumber) {
-        console.log(`Switching to scene: ${sceneNumber}`); // Debug info
+        console.log(`Switching to scene: ${sceneNumber}`);
     
-        if (sceneNumber === 0) { // 第一层
-            this.isFirstLayer = true; // 设置为第一层
+        if (sceneNumber === 0) {
+            this.isFirstLayer = true;
             const bgElement = document.querySelector('.background-container');
-            bgElement.style.zIndex = '9999'; // 将背景图层置于最上方，但低于暂停遮罩层
-            this.isRunning = false; // 暂停计时器
+            bgElement.style.zIndex = '9999';
+            
+            if (!this.hasCompletedStickers) {
+                this.isRunning = false; // 确保计时器暂停
+            } else {
+                // 如果已经完成过sticker，确保背景层级正确
+                this.isRunning = true;
+                bgElement.style.zIndex = '-999';
+            }
         } else {
-            this.isFirstLayer = false; // 不是第一层
+            this.isFirstLayer = false;
             const bgElement = document.querySelector('.background-container');
-            bgElement.style.zIndex = '1'; // 恢复背景图层的 z-index
-            // 不强制更改计时器状态，保留当前状态
-            // this.isRunning = true; // 注释掉这行，不强制继续计时器
+            bgElement.style.zIndex = '1';
         }
 
         // 确保暂停遮罩层的 z-index 总是高于背景图层
@@ -278,13 +427,7 @@ class GameTimer {
                 bgElement.style.opacity = '0';
 
                 setTimeout(() => {
-                    // 如果是第一个场景，不添加黑色渐变
-                    if (sceneNumber === 0) {
-                        bgElement.style.backgroundImage = `url('${update.image}')`;
-                    } else {
-                        // 使用带有渐变的背景图片
-                        bgElement.style.backgroundImage = `url('${update.image}')`;
-                    }
+                    bgElement.style.backgroundImage = `url('${update.image}')`;
                     bgElement.style.opacity = '1';
                 }, 500);
             }
@@ -292,6 +435,57 @@ class GameTimer {
             console.error(`Scene ${sceneNumber} not found`); // Debug info
         }
     }
+    
+    // 新方法：根据图片路径或场景索引切换场景
+    switchToScene(scenePathOrIndex) {
+        let imagePath;
+        
+        // 判断传入的是索引还是图片路径
+        if (typeof scenePathOrIndex === 'number') {
+            // 如果是索引，从backgroundUpdates获取图片路径
+            if (scenePathOrIndex >= 0 && scenePathOrIndex < this.backgroundUpdates.length) {
+                imagePath = this.backgroundUpdates[scenePathOrIndex].image;
+                this.currentScene = scenePathOrIndex; // 更新当前场景
+                this.updateSceneButtons(scenePathOrIndex); // 更新按钮状态
+            } else {
+                console.error(`无效的场景索引: ${scenePathOrIndex}`);
+                return;
+            }
+        } else {
+            // 如果直接传入的是图片路径
+            imagePath = scenePathOrIndex;
+        }
+        
+        console.log(`直接切换场景到: ${imagePath}`);
+        
+        // 设置为非第一层
+        this.isFirstLayer = false;
+        
+        // 调整背景容器层级
+        const bgContainer = document.querySelector('.background-container');
+        if (bgContainer) {
+            bgContainer.style.zIndex = '1';
+        }
+        
+        // 确保暂停遮罩层的 z-index 总是高于背景图层
+        if (this.pauseOverlay) {
+            this.pauseOverlay.style.zIndex = '10000';
+        }
+        
+        // 更新背景图片
+        const bgElement = document.querySelector('.background-image');
+        if (bgElement) {
+            // 淡出效果
+            bgElement.style.opacity = '0';
+            
+            // 等待淡出完成后更换图片
+            setTimeout(() => {
+                bgElement.style.backgroundImage = `url('${imagePath}')`;
+                bgElement.style.opacity = '1';
+            }, 500);
+        }
+    }
+
     initDraggableBackground() {
         const bgElement = document.querySelector('.background-image');
         
@@ -361,8 +555,58 @@ class GameTimer {
             isDragging = false;
         });
     }
-    
 
+    // 添加设置计时器颜色的方法
+    setTimerActive(active) {
+        const timerElements = [this.timerElement, this.anotherElement, this.missionTimerElement];
+        const timerLabels = document.querySelectorAll('.timer-label');
+        
+        if (active) {
+            // 设置为活跃状态（绿色）
+            timerElements.forEach(el => {
+                if (el) {
+                    el.style.color = '#4CAF50';
+                    el.style.textShadow = '0 0 10px rgba(76, 175, 80, 0.7)';
+                }
+            });
+            
+            timerLabels.forEach(label => {
+                if (label) {
+                    label.style.color = '#4CAF50';
+                    label.style.textShadow = '0 0 5px rgba(76, 175, 80, 0.3)';
+                }
+            });
+        } else {
+            // 设置为非活跃状态（灰色）
+            timerElements.forEach(el => {
+                if (el) {
+                    el.style.color = '#888888';
+                    el.style.textShadow = 'none';
+                }
+            });
+            
+            timerLabels.forEach(label => {
+                if (label) {
+                    label.style.color = '#888888';
+                    label.style.textShadow = 'none';
+                }
+            });
+        }
+    }
+
+    // 添加更新对话点数的方法
+    updateConversationPoints(count) {
+        const pointsElement = document.getElementById('conversation-points');
+        if (pointsElement) {
+            pointsElement.textContent = count;
+            // 如果点数为0，添加insufficient类
+            if (count === 0) {
+                this.conversationPointsElement.classList.add('insufficient');
+            } else {
+                this.conversationPointsElement.classList.remove('insufficient');
+            }
+        }
+    }
 }
 
 class Modal {
@@ -436,9 +680,8 @@ class Game {
     }
 }
 
-// 初始化游戏
-const gameTimer = new GameTimer();
-gameTimer.initSceneButtons(); // 初始化场景按钮
+// 全局的gameTimer实例仅初始化一次
+window.gameTimer = new GameTimer();
 const game = new Game();
 
 document.documentElement.lang = 'en';

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playtest</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="loading.js" defer></script>
+    <script src="instruction.js" defer></script>
     <script src="event.js" defer></script>
     <script src="detective.js" defer></script>
     <script src="script.js" defer></script>
@@ -14,14 +14,6 @@
     <script src="questioning.js" defer></script>
 </head>
 <body>
-    <div id="loading-screen" style="display: flex; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999;">
-        <div style="text-align: center; color: white;">
-            <h2>Loading Images...</h2>
-            <div id="progress-bar" style="width: 100%; background: #444; border-radius: 5px; overflow: hidden;">
-                <div id="progress" style="width: 0%; height: 30px; background: #4CAF50;"></div>
-            </div>
-        </div>
-    </div>
     <div class="pause-overlay">
         <div class="pause-icon">⏸</div>
     </div>
@@ -114,41 +106,11 @@
         </div>
     </div>
 
-    <!-- 计时器重置确认框 -->
-    <div id="timer-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Reset Timer</h2>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to reset the Game?<br>Your inquiry records and evidence will disappear.</p>
-                <div class="button2-container">
-                    <button id="timer-yes" style="background-color: #2e2e2e3a; color: white;">Yes</button>
-                    <button id="timer-no" style="background-color: #491915; color: white;">No</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 通用模态框 -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title"></h2>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Content will be injected here -->
-            </div>
-        </div>
-    </div>
-
     <!-- 底部按钮 -->
     <div class="button-container">
         <button id="evidence" class="game-button">Evidence</button>
         <button id="questioning" class="game-button">Questioning</button>
-        <button id="events" class="game-button">Events</button>
+        <button id="events" class="game-button" style="position: relative;">Events</button>
         <button id="conclusion" class="game-button conclusion-button" style="background: #b10f0f;">Conclusion</button>
     </div>
 
@@ -181,5 +143,59 @@
         <button id="scene4-btn">Amy's Room</button>
         <button id="scene5-btn">Linna's Room</button>
     </div>
+    
+    <!-- 计时器重置确认框 -->
+    <div id="timer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reset Timer</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reset the Game?<br>Your inquiry records and evidence will disappear.</p>
+                <div class="button2-container">
+                    <button id="timer-yes" style="background-color: #2e2e2e3a; color: white;">Yes</button>
+                    <button id="timer-no" style="background-color: #491915; color: white;">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 在DOM加载后等待用户点击切换到scene0.5.png图片 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 等待一段时间后确保gameTimer已初始化
+            setTimeout(function() {
+                if (window.gameTimer) {
+                    // 添加点击事件监听器到背景图片
+                    const bgImage = document.querySelector('.background-image');
+                    if (bgImage) {
+                        bgImage.addEventListener('click', function() {
+                            // 只在当前是intro场景时切换到transition场景
+                            if (window.gameTimer.currentScene === window.gameTimer.SCENE_INTRO) {
+                                window.gameTimer.switchToScene(window.gameTimer.SCENE_TRANSITION);
+                                console.log("已切换到过渡场景");
+                            }
+                        });
+                    }
+                } else {
+                    console.error("gameTimer未初始化，无法切换场景");
+                }
+            }, 1000); // 等待1秒确保所有脚本加载完成
+        });
+    </script>
 </body>
 </html>

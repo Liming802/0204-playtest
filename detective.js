@@ -184,3 +184,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // 消耗点数：detectiveManager.modifyPoints('lab', -2);
 // 增加点数：detectiveManager.modifyPoints('tech', 1);
 // 检查点数：if (detectiveManager.hasEnoughPoints('lab', 3)) { ... } 
+
+

@@ -553,11 +553,21 @@ class QuestioningModal {
                 notification.style.alignItems = 'center';
                 notification.style.justifyContent = 'center';
                 sendButton.appendChild(notification); // 添加小红点
+
+                // 更新对话点数显示
+                if (window.gameTimer) {
+                    window.gameTimer.updateConversationPoints(this.sendCount);
+                }
             } else {
                 sendButton.style.backgroundColor = '#888'; 
                 messageInput.placeholder = "Not available"; 
                 if (document.getElementById('send-notification')) {
                     document.getElementById('send-notification').remove(); // 移除小红点
+                }
+
+                // 更新对话点数显示为0
+                if (window.gameTimer) {
+                    window.gameTimer.updateConversationPoints(0);
                 }
             }
         }
@@ -595,10 +605,10 @@ class QuestioningModal {
         questioningModal.show();
     });
 
-    // 增加提问次数的函数
+    // 修改增加提问次数的方法
     function addQuestions(count) {
-        questioningModal.additionalQuestions += count; // 增加提问次数
-        questioningModal.updateSendButton(); // 更新发送按钮状态
+        questioningModal.sendCount += count; // 增加提问次数
+        questioningModal.updateSendButton(); // 更新发送按钮状态和对话点数显示
     }
 
     // 示例：调用增加提问次数

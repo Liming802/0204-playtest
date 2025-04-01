@@ -71,6 +71,17 @@ body {
     text-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
 }
 
+/* 添加灰色计时器样式 */
+.timer-inactive {
+    color: #888888 !important;
+    text-shadow: none !important;
+}
+
+.timer-label.timer-inactive {
+    color: #888888 !important;
+    text-shadow: none !important;
+}
+
 #timer, #mission {
     font-size: var(--font-size-base);
     font-family: 'Digital-7', 'DS-Digital', 'Segment7', 'Courier New', monospace;
@@ -525,7 +536,8 @@ body {
 }
 
 .event-time {
-    color: var(--primary-text);
+    padding-left: 20px;
+    color: var(--timer-color);
 }
 
 .toggle-description {
@@ -571,6 +583,16 @@ body {
     overflow: hidden; /* 隐藏溢出部分 */
     cursor: grab; /* 鼠标悬停时显示为可拖动 */
 }
+
+.sticker {
+    transition: transform 0.3s ease;
+}
+
+.sticker:hover {
+    transform: scale(1.05); /* Slightly enlarge the sticker on hover */
+}
+
+
 
 .background-image {
     position: absolute;
@@ -1028,22 +1050,24 @@ button:hover {
 }
 
 .scene-buttons button {
-    padding: 15px 20px; /* 确保与 game-button 一致 */
-    font-size: var(--font-size-base); /* 移除增大字体大小 */
-    min-width: 150px; /* 设置最小宽度以确保一致性 */
-    background: rgba(79, 79, 79, 0.5); /* 修改按钮背景颜色 */
-    color: white; /* 按钮文字颜色 */
+    padding: 10px 20px;
+    margin: 5px;
     border: none;
     border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
     cursor: pointer;
-    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+    transition: all 0.3s ease;
 }
 
 .scene-buttons button:hover {
-    background: #fff; /* 悬停时背景变为白色 */
-    color: #000; /* 悬停时文字变为黑色 */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5),  /* 黑色阴影 */
-                0 0 20px rgba(255, 255, 255, 0.5); /* 白色阴影 */
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.scene-buttons button.active-scene {
+    background-color: #727272;
+    box-shadow: 0 0 10px rgba(103, 103, 103, 0.5);
+    transform: scale(1.05);
 }
 
 .modal-body p {
@@ -1364,41 +1388,46 @@ button:hover {
     left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    z-index: 500;
+    gap: 5px; /* 减小间距 */
+    z-index: 100;
 }
 
 .points-container {
-    background: rgba(0, 0, 0, 0.85);
-    border: 2px solid;
-    border-radius: 15px;
-    padding: 10px;
-    min-width: 200px;
     display: flex;
     align-items: center;
-    gap: 5px;
-    backdrop-filter: blur(10px);
-    transform: scale(1);
-    transition: all 0.3s ease;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 8px 15px;
+    border-radius: 20px;
+    color: #4CAF50;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
 }
 
-.points-container:hover {
-    transform: scale(1.05);
+.conversation-points {
+    color: #4CAF50;
+}
+
+.conversation-points.insufficient {
+    color: #ff4444;
+    text-shadow: 0 0 5px rgba(255, 68, 68, 0.3);
+}
+
+.conversation-points.insufficient .timer-label {
+    color: #ff4444;
 }
 
 .lab-points {
-    border: 1px solid #888;
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
 }
 
 .tech-points {
-    border: 1px solid #888;
-    box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
+    color: #2196F3;
 }
 
 .points-icon {
     margin-left: 10px;
-    font-size: 24px;
     width: 40px;
     height: 40px;
     display: flex;
@@ -1406,6 +1435,12 @@ button:hover {
     justify-content: center;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
+}
+
+.points-icon img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
 }
 
 .points-info {
@@ -1482,8 +1517,8 @@ button:hover {
 }
 
 .timer-button {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(76, 175, 80, 0.3);
     border-radius: 5px;
